@@ -19,7 +19,7 @@ bash build.sh
 
 - `map-original.svg` is cloned from
   [Wikimedia](https://commons.wikimedia.org/wiki/File:BlankMap-World-Flattened.svg)
-  ([SVG](https://upload.wikimedia.org/wikipedia/commons/0/0c/BlankMap-World-Flattened.svg)
+  ([SVG](https://upload.wikimedia.org/wikipedia/commons/0/0c/BlankMap-World-Flattened.svg))
   licensed under the Public Domain
 - `src/map.svg` is modified from `map-original.svg` licensed under the Public
   Domain
