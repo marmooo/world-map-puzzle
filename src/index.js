@@ -163,13 +163,10 @@ function getPieceSvg(island, scale) {
   return svg;
 }
 
-function checkAngle(group, wrapper) {
+function checkSpinnedPosition(island, wrapper, group) {
   let diff = Math.abs(group.angle + wrapper.angle);
   if (diff > 180) diff = 360 - diff;
-  return (diff <= angleThreshold) ? true : false;
-}
-
-function checkSpinnedPosition(island, wrapper, group) {
+  if (diff > angleThreshold) return false;
   const center = wrapper.getCenterPoint();
   const original = island.getBoundingClientRect();
   const centerX = original.left + original.width / 2;
@@ -403,12 +400,14 @@ function setMovable(island, svg, course) {
     canvas.add(group);
 
     if (group.selectable) {
-      group.on("modified", (event) => {
+      group.on("modified", () => {
         playAudio("modified");
-        adjustElementPosition(event.target);
-        if (!checkPosition(island, event.target)) return;
-        canvas.remove(group);
-        setCorrectPiece(island);
+        if (checkPosition(island, group)) {
+          canvas.remove(group);
+          setCorrectPiece(island);
+        } else {
+          adjustElementPosition(group);
+        }
       });
     } else {
       const wrapper = addControlRect(group, course);
@@ -423,14 +422,15 @@ function setMovable(island, svg, course) {
           width: rectLength,
           height: rectLength,
         });
-        adjustElementPosition(wrapper);
-        if (!checkSpinnedPosition(island, wrapper, group)) return;
-        if (!checkAngle(group, wrapper)) return;
-        wrapper.getObjects().forEach((obj) => {
-          canvas.remove(obj);
-        });
-        canvas.remove(wrapper);
-        setCorrectPiece(island);
+        if (checkSpinnedPosition(island, wrapper, group)) {
+          wrapper.getObjects().forEach((obj) => {
+            canvas.remove(obj);
+          });
+          canvas.remove(wrapper);
+          setCorrectPiece(island);
+        } else {
+          adjustElementPosition(wrapper);
+        }
       });
     }
   });
