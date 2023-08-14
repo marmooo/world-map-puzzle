@@ -254,8 +254,8 @@ function setMovableOption(group, course) {
       group.setControlsVisibility({
         mtr: false,
       });
-      const width = (0.5 + Math.random()) * canvas.width / 10;
-      const height = (0.5 + Math.random()) * canvas.height / 10;
+      const width = (0.5 + Math.random()) * canvas.width / 20;
+      const height = (0.5 + Math.random()) * canvas.height / 20;
       group.set({
         scaleX: width / group.width,
         scaleY: height / group.height,
@@ -265,8 +265,8 @@ function setMovableOption(group, course) {
     case 9:
     case 10:
     case 11: {
-      const width = (0.5 + Math.random()) * canvas.width / 10;
-      const height = (0.5 + Math.random()) * canvas.height / 10;
+      const width = (0.5 + Math.random()) * canvas.width / 20;
+      const height = (0.5 + Math.random()) * canvas.height / 20;
       group.set({
         scaleX: width / group.width,
         scaleY: height / group.height,
