@@ -30,7 +30,7 @@
 {
    fill: #eee;
    fill-opacity: 1;
-   stroke: black;
+   stroke: #800;
    stroke-opacity: 1;
    stroke-width: 0.99986997;
    stroke-miterlimit: 3.97446823;
@@ -92,7 +92,7 @@
 {
    fill:#ffffff;
    fill-opacity:1;
-   stroke:black;
+   stroke:#0978ab;
    stroke-opacity:1;
    stroke-width:1;
    stroke-miterlimit:3.97446823;
