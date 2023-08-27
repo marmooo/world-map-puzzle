@@ -197,12 +197,13 @@ function checkPosition(island, rect) {
 function addCountryText(countryName) {
   clearTimeout(countryTimer);
   canvas.remove(countryText);
+  const zoom = canvas.getZoom();
   const fontSize = canvas.width / countryTextLength;
   countryText = new fabric.Text(countryName, {
     fontSize: fontSize,
     fontFamily: "serif",
-    left: canvas.width / 2,
-    top: canvas.height / 2,
+    left: (canvas.width / 2 - dx1) / zoom,
+    top: (canvas.height / 2 - dy1) / zoom,
     originX: "center",
     originY: "center",
     selectable: false,
@@ -510,8 +511,6 @@ function initCanvas() {
   let panning = false;
   let px = 0;
   let py = 0;
-  let dx1 = 0;
-  let dy1 = 0;
   let dx2 = 0;
   let dy2 = 0;
   canvas.on("mouse:wheel", (event) => {
@@ -665,6 +664,8 @@ let countryTimer;
 let startTime;
 let scoreText;
 let zoom = 1;
+let dx1 = 0;
+let dy1 = 0;
 
 // const panzoom = initMap();
 initCountriesInfo(htmlLang);
