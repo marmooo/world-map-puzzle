@@ -559,7 +559,7 @@ function initCanvas() {
     }
   });
   canvas.on("mouse:move", (event) => {
-    if (panning && !event.target) {
+    if (panning) {
       const e = event.e;
       const x = e.offsetX - px;
       const y = e.offsetY - py;
