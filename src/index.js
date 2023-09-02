@@ -511,8 +511,6 @@ function initCanvas() {
   let panning = false;
   let px = 0;
   let py = 0;
-  let dx2 = 0;
-  let dy2 = 0;
   canvas.on("mouse:wheel", (event) => {
     const e = event.e;
     if (!panning) {
@@ -602,15 +600,29 @@ function initCanvas() {
 }
 
 function resizePieces(rect) {
-  const scale = rect.width / canvas.getWidth();
-  canvas.setDimensions({ width: rect.width, height: rect.height });
-  canvas.getObjects().forEach((object) => {
-    object.left *= scale;
-    object.top *= scale;
-    object.scaleX *= scale;
-    object.scaleY *= scale;
-    object.setCoords();
-  });
+  if (zoom == 1) {
+    const scale = rect.width / canvas.width;
+    canvas.setDimensions({ width: map.offsetWidth, height: map.offsetHeight });
+    canvas.getObjects().forEach((object) => {
+      object.left *= scale;
+      object.top *= scale;
+      object.scaleX *= scale;
+      object.scaleY *= scale;
+      object.setCoords();
+    });
+  } else {
+    // TODO: keep zoom
+    zoom = 1;
+    dx1 =
+      dy1 =
+      dx2 =
+      dy2 =
+        0;
+    const point = new fabric.Point(dx1, dy1);
+    canvas.zoomToPoint(point, 1 / zoom);
+    canvas.absolutePan(point);
+    map.style.transform = `translate(0px,0px) scale(1)`;
+  }
 }
 
 function calcCountryTextLength(lang, countryNames) {
@@ -666,6 +678,8 @@ let scoreText;
 let zoom = 1;
 let dx1 = 0;
 let dy1 = 0;
+let dx2 = 0;
+let dy2 = 0;
 
 // const panzoom = initMap();
 initCountriesInfo(htmlLang);
