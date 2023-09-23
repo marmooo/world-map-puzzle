@@ -499,6 +499,195 @@ function startGame() {
   startTime = Date.now();
 }
 
+function initCanvasMouseEvent(canvas) {
+  let panning = false;
+  let px = 0;
+  let py = 0;
+  canvas.on("mouse:wheel", (event) => {
+    const e = event.e;
+    if (!panning) {
+      // const delta = e.deltaY;
+      // const prevZoom = canvas.getZoom();
+      // zoom = prevZoom * 0.999 ** delta;
+      // if (zoom > maxScale) zoom = maxScale;
+      // if (zoom < minScale) zoom = minScale;
+      // const point = new fabric.Point(e.offsetX, e.offsetY);
+      // canvas.zoomToPoint(point, zoom);
+      // dx1 = canvas.viewportTransform[4];
+      // dy1 = canvas.viewportTransform[5];
+      // // TODO: error due to mass transmission
+      // // const zoomValue = panzoom.zoomToPoint(zoom, e);
+      // // dx2 = zoomValue.x;
+      // // dy2 = zoomValue.y;
+      // const pointer = canvas.getPointer(e);
+      // dx2 += (pointer.x - canvas.width / 2) * (prevZoom - zoom);
+      // dy2 += (pointer.y - canvas.height / 2) * (prevZoom - zoom);
+      // map.style.transform = `translate(${dx2}px,${dy2}px) scale(${zoom})`;
+      const delta = e.deltaY;
+      const prevZoom = canvas.getZoom();
+      zoom = prevZoom * 0.999 ** delta;
+      if (zoom > maxScale) zoom = maxScale;
+      if (zoom < minScale) zoom = minScale;
+      const point = new fabric.Point(canvas.width / 2, canvas.height / 2);
+      canvas.zoomToPoint(point, zoom);
+      dx1 = canvas.viewportTransform[4];
+      dy1 = canvas.viewportTransform[5];
+      // const pointer = canvas.getPointer(e);
+      // dx2 += (pointer.x - canvas.width / 2) * (prevZoom - zoom);
+      // dy2 += (pointer.y - canvas.height / 2) * (prevZoom - zoom);
+      map.style.transform = `scale(${zoom}) translate(${dx2}px,${dy2}px)`;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  canvas.on("mouse:up", (event) => {
+    if (!panning) return;
+    panning = false;
+    dx1 = canvas.viewportTransform[4];
+    dy1 = canvas.viewportTransform[5];
+    // const pan = panzoom.getPan();
+    // dx2 = pan.x;
+    // dy2 = pan.y;
+    const e = event.e;
+    dx2 += (e.clientX - px) / zoom;
+    dy2 += (e.clientY - py) / zoom;
+  });
+  canvas.on("mouse:down", (event) => {
+    if (panning) return;
+    if (!event.target) {
+      panning = true;
+      const e = event.e;
+      px = e.clientX;
+      py = e.clientY;
+    }
+  });
+  canvas.on("mouse:move", (event) => {
+    if (!panning) return;
+    const e = event.e;
+    const x = e.clientX - px;
+    const y = e.clientY - py;
+    const point = new fabric.Point(-x - dx1, -y - dy1);
+    canvas.absolutePan(point);
+    // panzoom.pan(x / zoom + dx2, y / zoom + dy2);
+    const tx = x / zoom + dx2;
+    const ty = y / zoom + dy2;
+    map.style.transform = `scale(${zoom}) translate(${tx}px,${ty}px)`;
+  });
+}
+
+function initCanvasTouchEvent(canvas) {
+  let panning = false;
+  let px = 0;
+  let py = 0;
+  let touchId;
+  let initialZoom = zoom;
+  canvas.wrapperEl.addEventListener("touchstart", (event) => {
+    if (panning) return;
+    const touch = event.touches[0];
+    const target = canvas.findTarget(touch);
+    if (!target) {
+      panning = true;
+      px = touch.clientX;
+      py = touch.clientY;
+      touchId = touch.identifier;
+    }
+  });
+  canvas.wrapperEl.addEventListener("touchend", (event) => {
+    if (!panning) return;
+    if (event.touches.length == 0) {
+      panning = false;
+      const changedTouches = event.changedTouches;
+      for (let i = 0; i < changedTouches.length; i++) {
+        const changedTouch = changedTouches[i];
+        if (touchId == changedTouch.identifier) {
+          dx1 = canvas.viewportTransform[4];
+          dy1 = canvas.viewportTransform[5];
+          // const pan = panzoom.getPan();
+          // dx2 = pan.x;
+          // dy2 = pan.y;
+          dx2 += (changedTouch.clientX - px) / zoom;
+          dy2 += (changedTouch.clientY - py) / zoom;
+          break;
+        }
+      }
+    } else {
+      const changedTouches = event.changedTouches;
+      for (let i = 0; i < changedTouches.length; i++) {
+        const changedTouch = changedTouches[i];
+        if (touchId == changedTouch.identifier) {
+          // dx1 = canvas.viewportTransform[4];
+          // dy1 = canvas.viewportTransform[5];
+          // const pan = panzoom.getPan();
+          // dx2 = pan.x;
+          // dy2 = pan.y;
+          // dx2 += changedTouch.clientX - px;
+          // dy2 += changedTouch.clientY - py;
+          const touch = event.touches[0];
+          px = touch.clientX;
+          py = touch.clientY;
+          touchId = touch.identifier;
+          break;
+        } else {
+          // dx1 = canvas.viewportTransform[4];
+          // dy1 = canvas.viewportTransform[5];
+          // const pan = panzoom.getPan();
+          // dx2 = pan.x;
+          // dy2 = pan.y;
+          // dx2 += changedTouch.clientX - px;
+          // dy2 += changedTouch.clientY - py;
+          const touch = event.touches[0];
+          px = touch.clientX;
+          py = touch.clientY;
+          break;
+        }
+      }
+    }
+    initialZoom = zoom;
+  });
+  canvas.wrapperEl.addEventListener("touchmove", (event) => {
+    if (!panning) return;
+    switch (event.touches.length) {
+      case 1: {
+        const touch = event.touches[0];
+        const x = touch.clientX - px;
+        const y = touch.clientY - py;
+        const point = new fabric.Point(-x - dx1, -y - dy1);
+        canvas.absolutePan(point);
+        // panzoom.pan(x / zoom + dx2, y / zoom + dy2);
+        const tx = x / zoom + dx2;
+        const ty = y / zoom + dy2;
+        map.style.transform = `scale(${zoom}) translate(${tx}px,${ty}px)`;
+        break;
+      }
+      case 2: { // pinch zoom
+        // const prevZoom = canvas.getZoom();
+        // const touch = event.changedTouches[0];
+        // const rect = document.getElementById("canvas").getBoundingClientRect();
+        // const offsetX = touch.clientX - globalThis.scrollX - rect.left;
+        // const offsetY = touch.clientY - globalThis.scrollY - rect.top;
+        // const point = new fabric.Point(offsetX, offsetY);
+        // TODO: error due to mass transmission
+        // const zoomValue = panzoom.zoomToPoint(zoom, event);
+        // dx2 = zoomValue.x;
+        // dy2 = zoomValue.y;
+        // const pointer = canvas.getPointer(event);
+        // dx2 += (pointer.x - canvas.width / 2) * (prevZoom - zoom);
+        // dy2 += (pointer.y - canvas.height / 2) * (prevZoom - zoom);
+        // map.style.transform = `translate(${dx2}px,${dy2}px) scale(${zoom})`;
+        zoom = initialZoom * event.scale;
+        if (zoom > maxScale) zoom = maxScale;
+        if (zoom < minScale) zoom = minScale;
+        const point = new fabric.Point(canvas.width / 2, canvas.height / 2);
+        canvas.zoomToPoint(point, zoom);
+        dx1 = canvas.viewportTransform[4];
+        dy1 = canvas.viewportTransform[5];
+        map.style.transform = `scale(${zoom}) translate(${dx2}px,${dy2}px)`;
+        break;
+      }
+    }
+  });
+}
+
 function initCanvas() {
   const rect = map.getBoundingClientRect();
   const canvas = new fabric.Canvas("canvas", {
@@ -508,67 +697,13 @@ function initCanvas() {
     height: rect.height,
   });
 
-  let panning = false;
-  let px = 0;
-  let py = 0;
-  canvas.on("mouse:wheel", (event) => {
-    const e = event.e;
-    if (!panning) {
-      const delta = e.deltaY;
-      const prevZoom = canvas.getZoom();
-      zoom = prevZoom * 0.999 ** delta;
-      if (zoom > maxScale) zoom = maxScale;
-      if (zoom < minScale) zoom = minScale;
-      const point = new fabric.Point(e.offsetX, e.offsetY);
-      canvas.zoomToPoint(point, zoom);
-      dx1 = canvas.viewportTransform[4];
-      dy1 = canvas.viewportTransform[5];
-      // TODO: error due to mass transmission
-      // const zoomValue = panzoom.zoomToPoint(zoom, e);
-      // dx2 = zoomValue.x;
-      // dy2 = zoomValue.y;
-      const pointer = canvas.getPointer(e);
-      dx2 += (pointer.x - canvas.width / 2) * (prevZoom - zoom);
-      dy2 += (pointer.y - canvas.height / 2) * (prevZoom - zoom);
-      map.style.transform = `translate(${dx2}px,${dy2}px) scale(${zoom})`;
-    }
-    e.preventDefault();
-    e.stopPropagation();
-  });
-  canvas.on("mouse:up", (event) => {
-    if (panning) {
-      panning = false;
-      dx1 = canvas.viewportTransform[4];
-      dy1 = canvas.viewportTransform[5];
-      // const pan = panzoom.getPan();
-      // dx2 = pan.x;
-      // dy2 = pan.y;
-      const e = event.e;
-      dx2 += e.offsetX - px;
-      dy2 += e.offsetY - py;
-    }
-  });
-  canvas.on("mouse:down", (event) => {
-    if (!event.target) {
-      panning = true;
-      const e = event.e;
-      px = e.offsetX;
-      py = e.offsetY;
-    }
-  });
-  canvas.on("mouse:move", (event) => {
-    if (panning) {
-      const e = event.e;
-      const x = e.offsetX - px;
-      const y = e.offsetY - py;
-      const point = new fabric.Point(-x - dx1, -y - dy1);
-      canvas.absolutePan(point);
-      // panzoom.pan(x / zoom + dx2, y / zoom + dy2);
-      const tx = x + dx2;
-      const ty = y + dy2;
-      map.style.transform = `translate(${tx}px,${ty}px) scale(${zoom})`;
-    }
-  });
+  if (fabric.isTouchSupported) {
+    // fabric.js only fires events when the first finger touches the screen,
+    // so we need to create custom events to support multi-touch.
+    initCanvasTouchEvent(canvas);
+  } else {
+    initCanvasMouseEvent(canvas);
+  }
   canvas.selection = false;
   // canvas.on("before:selection:cleared", (event) => {
   //   adjustElementPosition(event.target);
