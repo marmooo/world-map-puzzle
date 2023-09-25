@@ -543,6 +543,7 @@ function initCanvasMouseEvent(canvas) {
       dx1 = canvas.viewportTransform[4];
       dy1 = canvas.viewportTransform[5];
       map.style.transform = `scale(${zoom}) translate(${dx2}px,${dy2}px)`;
+      document.getElementById("guide").replaceChildren();
     }
     e.preventDefault();
     e.stopPropagation();
@@ -575,6 +576,7 @@ function initCanvasMouseEvent(canvas) {
     const tx = x / zoom + dx2;
     const ty = y / zoom + dy2;
     map.style.transform = `scale(${zoom}) translate(${tx}px,${ty}px)`;
+    document.getElementById("guide").replaceChildren();
   });
 }
 
@@ -642,6 +644,7 @@ function initCanvasTouchEvent(canvas) {
         const tx = x / zoom + dx2;
         const ty = y / zoom + dy2;
         map.style.transform = `scale(${zoom}) translate(${tx}px,${ty}px)`;
+        document.getElementById("guide").replaceChildren();
         break;
       }
       case 2: { // pinch zoom
@@ -653,10 +656,69 @@ function initCanvasTouchEvent(canvas) {
         dx1 = canvas.viewportTransform[4];
         dy1 = canvas.viewportTransform[5];
         map.style.transform = `scale(${zoom}) translate(${dx2}px,${dy2}px)`;
+        document.getElementById("guide").replaceChildren();
         break;
       }
     }
   });
+}
+
+function setMapGuideMouseEvent(canvas) {
+  let lastTouchTime = 0;
+  canvas.on("mouse:down", (event) => {
+    const now = Date.now();
+    if (now - lastTouchTime < 200) {
+      const pointer = canvas.getPointer(event);
+      const islands = findPieceNodes(pointer.x, pointer.y);
+      islands.forEach((island) => setMapGuideTooltip(event.e, island));
+    }
+    lastTouchTime = now;
+  });
+}
+
+function setMapGuideTouchEvent(canvas) {
+  let lastTouchTime = 0;
+  canvas.wrapperEl.addEventListener("touchstart", (event) => {
+    const now = Date.now();
+    if (now - lastTouchTime < 200) {
+      const pointer = canvas.getPointer(event);
+      const islands = findPieceNodes(pointer.x, pointer.y);
+      const touch = event.touches[0];
+      islands.forEach((island) => setMapGuideTooltip(touch, island));
+    }
+    lastTouchTime = now;
+  });
+}
+
+function findPieceNodes(offsetX, offsetY) {
+  const candidates = map.contentDocument.elementsFromPoint(offsetX, offsetY);
+  const islands = candidates.map((node) => {
+    if (node.tagName == "svg") return false;
+    if (node.classList.contains("piece")) return node;
+    const parentNode = node.parentNode;
+    if (parentNode.classList.contains("piece")) return parentNode;
+    return false;
+  }).filter((node) => node);
+  return islands;
+}
+
+function setMapGuideTooltip(event, island) {
+  const tx = event.clientX;
+  const ty = event.clientY - 30;
+  const id = getCountryId(island);
+  const countryName = countryNames.get(id);
+  const html = `
+    <div class="tooltip show" role="tooltip"
+      style="position:absolute; inset:0px auto auto 0px; transform:translate(${tx}px,${ty}px);">
+      <div class="tooltip-inner">${countryName}</div>
+    </div>
+  `;
+  const guide = document.getElementById("guide");
+  guide.insertAdjacentHTML("beforeend", html);
+  const tooltip = guide.lastElementChild;
+  tooltip.onclick = () => {
+    tooltip.remove();
+  };
 }
 
 function initCanvas() {
@@ -667,13 +729,14 @@ function initCanvas() {
     width: rect.width,
     height: rect.height,
   });
-
   if (fabric.isTouchSupported) {
     // fabric.js only fires events when the first finger touches the screen,
     // so we need to create custom events to support multi-touch.
     initCanvasTouchEvent(canvas);
+    setMapGuideTouchEvent(canvas);
   } else {
     initCanvasMouseEvent(canvas);
+    setMapGuideMouseEvent(canvas);
   }
   canvas.selection = false;
   // canvas.on("before:selection:cleared", (event) => {
