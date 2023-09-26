@@ -768,8 +768,9 @@ function initCanvas() {
   return canvas;
 }
 
-function resizePieces(rect) {
+function resizePieces() {
   if (zoom == 1) {
+    const rect = map.getBoundingClientRect();
     const scale = rect.width / canvas.width;
     canvas.setDimensions({ width: map.offsetWidth, height: map.offsetHeight });
     canvas.getObjects().forEach((object) => {
@@ -861,8 +862,8 @@ document.addEventListener("click", unlockAudio, {
   useCapture: true,
 });
 globalThis.addEventListener("resize", () => {
-  const rect = map.getBoundingClientRect();
-  resizePieces(rect);
+  if (!canvas) return;
+  resizePieces();
   if (countryText) {
     countryText.set({
       left: canvas.width / 2,
