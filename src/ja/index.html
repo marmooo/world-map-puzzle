@@ -53,8 +53,15 @@
             世界地図パズル
           </a>
           <div class="navbar-nav">
-            <button id="startButton" class="btn btn-sm btn-primary" type="button">スタート</button>
-            <select title="コース" id="courseOption" class="form-select form-select-sm w-auto ms-1">
+            <button id="startButton" class="btn btn-sm btn-primary text-nowrap" type="button">スタート</button>
+            <select title="コース" id="courseOption" class="form-select form-select-sm ms-1">
+              <option value="ALL" selected>全部</option>
+              <option value="Africa">アフリカ</option>
+              <option value="America">アメリカ</option>
+              <option value="Asia / Oceania">アジア / オセアニア</option>
+              <option value="Europe">ヨーロッパ</option>
+            </select>
+            <select title="レベル" id="gradeOption" class="form-select form-select-sm w-auto ms-1">
               <option>Lv. 1</option>
               <option>Lv. 2</option>
               <option>Lv. 3</option>

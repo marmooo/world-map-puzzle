@@ -216,8 +216,8 @@ function addCountryText(countryName) {
   }, 2000);
 }
 
-function setMovableOption(group, course) {
-  switch (course) {
+function setMovableOption(group, grade) {
+  switch (grade) {
     case 0:
     case 1:
     case 2:
@@ -287,7 +287,7 @@ function setMovableOption(group, course) {
   }
 }
 
-function addControlRect(group, course) {
+function addControlRect(group, grade) {
   group.setCoords();
   const rect = group.getBoundingRect();
   const rectLength = Math.max(rect.width, rect.height);
@@ -312,7 +312,7 @@ function addControlRect(group, course) {
     transparentCorners: false,
     cornerStyle: "circle",
   });
-  if (course < 9) {
+  if (grade < 9) {
     wrapper.setControlsVisibility({
       bl: false,
       br: false,
@@ -350,14 +350,14 @@ function addScoreText() {
 function setCorrectPiece(island) {
   island.style.fill = "silver";
   correctCount += 1;
-  if (correctCount == countryNames.size) {
+  if (correctCount == problemNum) {
     playAudio("correctAll");
     addScoreText();
   } else {
     playAudio("correct");
   }
   const id = getCountryId(island);
-  const countryName = countryNames.get(id);
+  const countryName = countryInfos.get(id).name;
   addCountryText(countryName);
   speak(countryName);
 }
@@ -394,7 +394,7 @@ function setPieceGuideEvent(island, group) {
       const tx = touch.clientX;
       const ty = touch.clientY - 30;
       const id = getCountryId(island);
-      const countryName = countryNames.get(id);
+      const countryName = countryInfos.get(id).name;
       const html = `
         <div id="pieceGuide" class="tooltip show" role="tooltip"
           style="position:absolute; inset:0px auto auto 0px; transform:translate(${tx}px,${ty}px);">
@@ -407,7 +407,7 @@ function setPieceGuideEvent(island, group) {
   });
 }
 
-function setMovable(island, svg, course) {
+function setMovable(island, svg, grade) {
   new fabric.loadSVGFromString(svg.outerHTML, (objects, options) => {
     const group = fabric.util.groupSVGElements(objects, options);
     group.set({
@@ -422,7 +422,7 @@ function setMovable(island, svg, course) {
       transparentCorners: false,
       cornerStyle: "circle",
     });
-    setMovableOption(group, course);
+    setMovableOption(group, grade);
     canvas.add(group);
 
     if (group.selectable) {
@@ -437,7 +437,7 @@ function setMovable(island, svg, course) {
         }
       });
     } else {
-      const wrapper = addControlRect(group, course);
+      const wrapper = addControlRect(group, grade);
       setPieceGuideEvent(island, group);
       wrapper.on("modified", () => {
         playAudio("modified");
@@ -473,35 +473,47 @@ function getSVGScale(map, doc) {
 
 function shuffleSVG() {
   canvas.clear();
-  const course = document.getElementById("courseOption").selectedIndex;
+  const courseObj = document.getElementById("courseOption");
+  const course = courseObj.options[courseObj.selectedIndex].value;
+  const grade = document.getElementById("gradeOption").selectedIndex;
   const doc = map.contentDocument;
   const scale = getSVGScale(map, doc);
-  doc.querySelectorAll(".not-piece").forEach((country) => {
-    country.style.fill = "silver";
+  doc.querySelectorAll(".not-piece").forEach((node) => {
+    node.style.fill = "silver";
   });
-  const countries = doc.querySelectorAll(".piece");
-  for (const country of countries) {
-    country.style.fill = "black";
-    const svg = getPieceSvg(country, scale);
-    setMovable(country, svg, course);
+  const pieces = [...doc.querySelectorAll(".piece")].filter((piece) => {
+    if (course == "ALL") return true;
+    const id = getCountryId(piece);
+    const area = countryInfos.get(id).area;
+    if (course.includes(area)) {
+      return true;
+    } else {
+      piece.style.fill = "darkgray";
+    }
+  });
+  problemNum = pieces.length;
+  for (const piece of pieces) {
+    piece.style.fill = "black";
+    const svg = getPieceSvg(piece, scale);
+    setMovable(piece, svg, grade);
   }
-  switch (course % 3) {
+  switch (grade % 3) {
     case 0:
-      countries.forEach((country) => {
-        country.style.fill = "#eee";
-        country.style.strokeWidth = 1;
+      pieces.forEach((piece) => {
+        piece.style.fill = "#eee";
+        piece.style.strokeWidth = 1;
       });
       break;
     case 1:
-      countries.forEach((country) => {
-        country.style.fill = "#eee";
-        country.style.strokeWidth = 0;
+      pieces.forEach((piece) => {
+        piece.style.fill = "#eee";
+        piece.style.strokeWidth = 0;
       });
       break;
     case 2:
-      countries.forEach((country) => {
-        country.style.fill = "none";
-        country.style.strokeWidth = 0;
+      pieces.forEach((piece) => {
+        piece.style.fill = "none";
+        piece.style.strokeWidth = 0;
       });
       break;
   }
@@ -706,7 +718,7 @@ function setMapGuideTooltip(event, island) {
   const tx = event.clientX;
   const ty = event.clientY - 30;
   const id = getCountryId(island);
-  const countryName = countryNames.get(id);
+  const countryName = countryInfos.get(id).name;
   const html = `
     <div class="tooltip show" role="tooltip"
       style="position:absolute; inset:0px auto auto 0px; transform:translate(${tx}px,${ty}px);">
@@ -791,12 +803,13 @@ function resizePieces() {
     const point = new fabric.Point(dx1, dy1);
     canvas.zoomToPoint(point, 1 / zoom);
     canvas.absolutePan(point);
-    map.style.transform = `translate(0px,0px) scale(1)`;
+    map.style.transform = `scale(1) translate(0px,0px)`;
   }
 }
 
-function calcCountryTextLength(lang, countryNames) {
-  const names = Array.from(countryNames.values());
+function calcCountryTextLength(lang, countryInfos) {
+  const countries = Array.from(countryInfos.values());
+  const names = countries.map((country) => country.name);
   const max = Math.max(...names.map((str) => str.length));
   switch (lang) {
     case "ja":
@@ -825,11 +838,14 @@ function getTTSLang(htmlLang) {
 async function initCountriesInfo(htmlLang) {
   const response = await fetch(`/world-map-puzzle/data/${htmlLang}.csv`);
   const text = await response.text();
-  const names = text.trimEnd().split("\n")
-    .map((line) => line.split(",").slice(1))
-    .filter((arr) => !arr[1].startsWith("#"));
-  countryNames = new Map(names);
-  countryTextLength = calcCountryTextLength(htmlLang, countryNames);
+  text.trimEnd().split("\n").forEach((line) => {
+    const [_emoji, id, name, area] = line.split(",");
+    if (!name.startsWith("#")) {
+      const countryInfo = { name, area };
+      countryInfos.set(id, countryInfo);
+    }
+  });
+  countryTextLength = calcCountryTextLength(htmlLang, countryInfos);
 }
 
 const map = document.getElementById("map");
@@ -838,8 +854,9 @@ const scaleThreshold = 0.3;
 const angleThreshold = 20;
 const maxScale = 20;
 const minScale = 1;
+const countryInfos = new Map();
+let problemNum;
 let canvas;
-let countryNames;
 let countryText;
 let countryTextLength;
 let countryTimer;
