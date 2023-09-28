@@ -781,10 +781,10 @@ function initCanvas() {
 }
 
 function resizePieces() {
-  if (zoom == 1) {
-    const rect = map.getBoundingClientRect();
-    const scale = rect.width / canvas.width;
-    canvas.setDimensions({ width: map.offsetWidth, height: map.offsetHeight });
+  const width = map.offsetWidth;
+  const scale = width / canvas.width;
+  if (scale != 1) {
+    canvas.setDimensions({ width: width, height: map.offsetHeight });
     canvas.getObjects().forEach((object) => {
       object.left *= scale;
       object.top *= scale;
@@ -792,18 +792,13 @@ function resizePieces() {
       object.scaleY *= scale;
       object.setCoords();
     });
-  } else {
-    // TODO: keep zoom
-    zoom = 1;
-    dx1 =
-      dy1 =
-      dx2 =
-      dy2 =
-        0;
-    const point = new fabric.Point(dx1, dy1);
-    canvas.zoomToPoint(point, 1 / zoom);
+    const point = new fabric.Point(-dx1 * scale, -dy1 * scale);
     canvas.absolutePan(point);
-    map.style.transform = `scale(1) translate(0px,0px)`;
+    dx1 = canvas.viewportTransform[4];
+    dy1 = canvas.viewportTransform[5];
+    dx2 *= scale;
+    dy2 *= scale;
+    map.style.transform = `scale(${zoom}) translate(${dx2}px,${dy2}px)`;
   }
 }
 
