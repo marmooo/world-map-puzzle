@@ -538,6 +538,18 @@ function startGame() {
   startTime = Date.now();
 }
 
+function calcLimitedPoint(x, y) {
+  const left = -canvas.width / 2;
+  const top = -canvas.height / 2;
+  const right = -left;
+  const bottom = -top;
+  if (x <= left) x = left;
+  if (y <= top) y = top;
+  if (right <= x) x = right;
+  if (bottom <= y) y = bottom;
+  return [x, y];
+}
+
 function initCanvasMouseEvent(canvas) {
   let panning = false;
   let px = 0;
@@ -563,11 +575,15 @@ function initCanvasMouseEvent(canvas) {
   canvas.on("mouse:up", (event) => {
     if (!panning) return;
     panning = false;
+    const e = event.e;
+    const tx2 = dx2 + (e.clientX - px) / zoom;
+    const ty2 = dy2 + (e.clientY - py) / zoom;
+    const [lx2, ly2] = calcLimitedPoint(tx2, ty2);
+    dx2 = lx2;
+    dy2 = ly2;
+
     dx1 = canvas.viewportTransform[4];
     dy1 = canvas.viewportTransform[5];
-    const e = event.e;
-    dx2 += (e.clientX - px) / zoom;
-    dy2 += (e.clientY - py) / zoom;
   });
   canvas.on("mouse:down", (event) => {
     if (panning) return;
@@ -583,11 +599,15 @@ function initCanvasMouseEvent(canvas) {
     const e = event.e;
     const x = e.clientX - px;
     const y = e.clientY - py;
-    const point = new fabric.Point(-x - dx1, -y - dy1);
+    const tx2 = x / zoom + dx2;
+    const ty2 = y / zoom + dy2;
+    const [lx2, ly2] = calcLimitedPoint(tx2, ty2);
+    map.style.transform = `scale(${zoom}) translate(${lx2}px,${ly2}px)`;
+
+    const tx1 = x + dx1 + (lx2 - tx2) * zoom;
+    const ty1 = y + dy1 + (ly2 - ty2) * zoom;
+    const point = new fabric.Point(-tx1, -ty1);
     canvas.absolutePan(point);
-    const tx = x / zoom + dx2;
-    const ty = y / zoom + dy2;
-    map.style.transform = `scale(${zoom}) translate(${tx}px,${ty}px)`;
     document.getElementById("guide").replaceChildren();
   });
 }
@@ -617,10 +637,14 @@ function initCanvasTouchEvent(canvas) {
       for (let i = 0; i < changedTouches.length; i++) {
         const changedTouch = changedTouches[i];
         if (touchId == changedTouch.identifier) {
+          const tx2 = dx2 + (changedTouch.clientX - px) / zoom;
+          const ty2 = dy2 + (changedTouch.clientY - py) / zoom;
+          const [lx2, ly2] = calcLimitedPoint(tx2, ty2);
+          dx2 = lx2;
+          dy2 = ly2;
+
           dx1 = canvas.viewportTransform[4];
           dy1 = canvas.viewportTransform[5];
-          dx2 += (changedTouch.clientX - px) / zoom;
-          dy2 += (changedTouch.clientY - py) / zoom;
           break;
         }
       }
@@ -651,11 +675,15 @@ function initCanvasTouchEvent(canvas) {
         const touch = event.touches[0];
         const x = touch.clientX - px;
         const y = touch.clientY - py;
-        const point = new fabric.Point(-x - dx1, -y - dy1);
+        const tx2 = x / zoom + dx2;
+        const ty2 = y / zoom + dy2;
+        const [lx2, ly2] = calcLimitedPoint(tx2, ty2);
+        map.style.transform = `scale(${zoom}) translate(${lx2}px,${ly2}px)`;
+
+        const tx1 = x + dx1 + (lx2 - tx2) * zoom;
+        const ty1 = y + dy1 + (ly2 - ty2) * zoom;
+        const point = new fabric.Point(-tx1, -ty1);
         canvas.absolutePan(point);
-        const tx = x / zoom + dx2;
-        const ty = y / zoom + dy2;
-        map.style.transform = `scale(${zoom}) translate(${tx}px,${ty}px)`;
         document.getElementById("guide").replaceChildren();
         break;
       }
