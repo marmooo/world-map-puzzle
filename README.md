@@ -1,6 +1,8 @@
 # world-map-puzzle
 
 [A map puzzle of world countries](https://marmooo.github.io/world-map-puzzle/).
+Also includes regional puzzles such as Africa, America, Asia, Oceania, and
+Europe.
 
 ## Build
 
