@@ -676,7 +676,6 @@ function initCanvasTouchEvent(canvas) {
       }
       case 2: { // pinch zoom
         if (!zooming) {
-          zooming = true;
           const touches = event.touches;
           for (let i = 0; i < touches.length; i++) {
             const touch = touches[i];
@@ -690,6 +689,7 @@ function initCanvasTouchEvent(canvas) {
               break;
             }
           }
+          zooming = true;
         }
         zoom = initialZoom * event.scale;
         if (zoom > maxScale) zoom = maxScale;
