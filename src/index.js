@@ -729,7 +729,7 @@ function setMapGuideTouchEvent(canvas) {
     if (now - lastTouchTime < 200) {
       const pointer = canvas.getPointer(event);
       const islands = findPieceNodes(pointer.x, pointer.y);
-      const touch = event.touches[0];
+      const touch = event.changedTouches[0];
       islands.forEach((island) => setMapGuideTooltip(touch, island));
     }
     lastTouchTime = now;
