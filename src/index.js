@@ -566,9 +566,7 @@ function initCanvasMouseEvent(canvas) {
     const e = event.e;
     const tx2 = dx2 + (e.clientX - px) / zoom;
     const ty2 = dy2 + (e.clientY - py) / zoom;
-    const [lx2, ly2] = calcLimitedPoint(tx2, ty2);
-    dx2 = lx2;
-    dy2 = ly2;
+    [dx2, dy2] = calcLimitedPoint(tx2, ty2);
 
     dx1 = canvas.viewportTransform[4];
     dy1 = canvas.viewportTransform[5];
@@ -602,6 +600,7 @@ function initCanvasMouseEvent(canvas) {
 
 function initCanvasTouchEvent(canvas) {
   let panning = false;
+  let zooming = false;
   let px = 0;
   let py = 0;
   let touchId;
@@ -619,6 +618,7 @@ function initCanvasTouchEvent(canvas) {
   });
   canvas.wrapperEl.addEventListener("touchend", (event) => {
     if (!panning) return;
+    zooming = false;
     if (event.touches.length == 0) {
       panning = false;
       const changedTouches = event.changedTouches;
@@ -627,9 +627,7 @@ function initCanvasTouchEvent(canvas) {
         if (touchId == changedTouch.identifier) {
           const tx2 = dx2 + (changedTouch.clientX - px) / zoom;
           const ty2 = dy2 + (changedTouch.clientY - py) / zoom;
-          const [lx2, ly2] = calcLimitedPoint(tx2, ty2);
-          dx2 = lx2;
-          dy2 = ly2;
+          [dx2, dy2] = calcLimitedPoint(tx2, ty2);
 
           dx1 = canvas.viewportTransform[4];
           dy1 = canvas.viewportTransform[5];
@@ -660,6 +658,7 @@ function initCanvasTouchEvent(canvas) {
     if (!panning) return;
     switch (event.touches.length) {
       case 1: {
+        zooming = false;
         const touch = event.touches[0];
         const x = touch.clientX - px;
         const y = touch.clientY - py;
@@ -676,6 +675,22 @@ function initCanvasTouchEvent(canvas) {
         break;
       }
       case 2: { // pinch zoom
+        if (!zooming) {
+          zooming = true;
+          const touches = event.touches;
+          for (let i = 0; i < touches.length; i++) {
+            const touch = touches[i];
+            if (touchId == touch.identifier) {
+              const tx2 = dx2 + (touch.clientX - px) / zoom;
+              const ty2 = dy2 + (touch.clientY - py) / zoom;
+              [dx2, dy2] = calcLimitedPoint(tx2, ty2);
+
+              dx1 = canvas.viewportTransform[4];
+              dy1 = canvas.viewportTransform[5];
+              break;
+            }
+          }
+        }
         zoom = initialZoom * event.scale;
         if (zoom > maxScale) zoom = maxScale;
         if (zoom < minScale) zoom = minScale;
@@ -687,6 +702,9 @@ function initCanvasTouchEvent(canvas) {
         document.getElementById("guide").replaceChildren();
         break;
       }
+      default:
+        zooming = false;
+        break;
     }
   });
 }
