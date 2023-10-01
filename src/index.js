@@ -1,5 +1,4 @@
 import svgpath from "https://cdn.jsdelivr.net/npm/svgpath@2.6.0/+esm";
-// import Panzoom from "https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.5.1/+esm";
 
 const htmlLang = document.documentElement.lang;
 const ttsLang = getTTSLang(htmlLang);
@@ -519,17 +518,6 @@ function shuffleSVG() {
   }
 }
 
-function _initMap() {
-  map.style.pointerEvents = "none";
-  const panzoom = Panzoom(map, {
-    canvas: true,
-    maxScale: maxScale,
-    minScale: minScale,
-  });
-  // map.parentNode.addEventListener("wheel", panzoom.zoomWithWheel);
-  return panzoom;
-}
-
 function startGame() {
   if (!canvas) canvas = initCanvas();
   canvas.remove(scoreText);
@@ -891,7 +879,6 @@ let dy1 = 0;
 let dx2 = 0;
 let dy2 = 0;
 
-// const panzoom = initMap();
 initCountriesInfo(htmlLang);
 
 document.getElementById("startButton").onclick = startGame;
