@@ -617,7 +617,6 @@ function initCanvasTouchEvent(canvas) {
         break;
       }
       case 2: {
-        panning = true;
         const touches = event.touches;
         for (let i = 0; i < touches.length; i++) {
           const touch = touches[i];
