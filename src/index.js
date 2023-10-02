@@ -572,7 +572,6 @@ function initCanvasMouseEvent(canvas) {
     dy1 = canvas.viewportTransform[5];
   });
   canvas.on("mouse:down", (event) => {
-    if (panning) return;
     if (!event.target) {
       panning = true;
       const e = event.e;
@@ -600,25 +599,44 @@ function initCanvasMouseEvent(canvas) {
 
 function initCanvasTouchEvent(canvas) {
   let panning = false;
-  let zooming = false;
   let px = 0;
   let py = 0;
   let touchId;
   let initialZoom = zoom;
   canvas.wrapperEl.addEventListener("touchstart", (event) => {
-    if (panning) return;
-    const touch = event.touches[0];
-    const target = canvas.findTarget(touch);
-    if (!target) {
-      panning = true;
-      px = touch.clientX;
-      py = touch.clientY;
-      touchId = touch.identifier;
+    switch (event.touches.length) {
+      case 1: {
+        const touch = event.touches[0];
+        const target = canvas.findTarget(touch);
+        if (!target) {
+          panning = true;
+          px = touch.clientX;
+          py = touch.clientY;
+          touchId = touch.identifier;
+        }
+        break;
+      }
+      case 2: {
+        panning = true;
+        const touches = event.touches;
+        for (let i = 0; i < touches.length; i++) {
+          const touch = touches[i];
+          if (touchId == touch.identifier) {
+            const tx2 = dx2 + (touch.clientX - px) / zoom;
+            const ty2 = dy2 + (touch.clientY - py) / zoom;
+            [dx2, dy2] = calcLimitedPoint(tx2, ty2);
+
+            dx1 = canvas.viewportTransform[4];
+            dy1 = canvas.viewportTransform[5];
+            break;
+          }
+        }
+        break;
+      }
     }
   });
   canvas.wrapperEl.addEventListener("touchend", (event) => {
     if (!panning) return;
-    zooming = false;
     if (event.touches.length == 0) {
       panning = false;
       const changedTouches = event.changedTouches;
@@ -634,6 +652,7 @@ function initCanvasTouchEvent(canvas) {
           break;
         }
       }
+      touchId = null;
     } else {
       const changedTouches = event.changedTouches;
       for (let i = 0; i < changedTouches.length; i++) {
@@ -658,7 +677,6 @@ function initCanvasTouchEvent(canvas) {
     if (!panning) return;
     switch (event.touches.length) {
       case 1: {
-        zooming = false;
         const touch = event.touches[0];
         const x = touch.clientX - px;
         const y = touch.clientY - py;
@@ -675,22 +693,6 @@ function initCanvasTouchEvent(canvas) {
         break;
       }
       case 2: { // pinch zoom
-        if (!zooming) {
-          const touches = event.touches;
-          for (let i = 0; i < touches.length; i++) {
-            const touch = touches[i];
-            if (touchId == touch.identifier) {
-              const tx2 = dx2 + (touch.clientX - px) / zoom;
-              const ty2 = dy2 + (touch.clientY - py) / zoom;
-              [dx2, dy2] = calcLimitedPoint(tx2, ty2);
-
-              dx1 = canvas.viewportTransform[4];
-              dy1 = canvas.viewportTransform[5];
-              break;
-            }
-          }
-          zooming = true;
-        }
         zoom = initialZoom * event.scale;
         if (zoom > maxScale) zoom = maxScale;
         if (zoom < minScale) zoom = minScale;
@@ -703,7 +705,6 @@ function initCanvasTouchEvent(canvas) {
         break;
       }
       default:
-        zooming = false;
         break;
     }
   });
