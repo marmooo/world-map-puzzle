@@ -695,12 +695,23 @@ function initCanvasTouchEvent(canvas) {
         zoom = initialZoom * event.scale;
         if (zoom > maxScale) zoom = maxScale;
         if (zoom < minScale) zoom = minScale;
-        const point = new fabric.Point(canvas.width / 2, canvas.height / 2);
-        canvas.zoomToPoint(point, zoom);
-        dx1 = canvas.viewportTransform[4];
-        dy1 = canvas.viewportTransform[5];
-        map.style.transform = `scale(${zoom}) translate(${dx2}px,${dy2}px)`;
-        document.getElementById("guide").replaceChildren();
+        if (zoom == 1) {
+          const point = new fabric.Point(0, 0);
+          canvas.absolutePan(point);
+          canvas.setZoom(1);
+          dx1 = canvas.viewportTransform[4];
+          dy1 = canvas.viewportTransform[5];
+          dx2 = dy2 = 0;
+          map.style.transform = `scale(${zoom}) translate(${dx2}px,${dy2}px)`;
+          document.getElementById("guide").replaceChildren();
+        } else {
+          const point = new fabric.Point(canvas.width / 2, canvas.height / 2);
+          canvas.zoomToPoint(point, zoom);
+          dx1 = canvas.viewportTransform[4];
+          dy1 = canvas.viewportTransform[5];
+          map.style.transform = `scale(${zoom}) translate(${dx2}px,${dy2}px)`;
+          document.getElementById("guide").replaceChildren();
+        }
         break;
       }
       default:
