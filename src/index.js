@@ -390,8 +390,8 @@ function setPieceGuideEvent(island, group) {
     if (now - lastTouchTime < 200) {
       const e = event.e;
       const touch = (e instanceof TouchEvent) ? e.touches[0] : e;
-      const tx = touch.clientX;
-      const ty = touch.clientY - 16;
+      const tx = touch.pageX;
+      const ty = touch.pageY - 30;
       const id = getCountryId(island);
       const countryName = countryInfos.get(id).name;
       const html = `
@@ -769,8 +769,8 @@ function findPieceNodes(offsetX, offsetY) {
 }
 
 function setMapGuideTooltip(event, island) {
-  const tx = event.clientX;
-  const ty = event.clientY - 16;
+  const tx = event.pageX;
+  const ty = event.pageY - 30;
   const id = getCountryId(island);
   const countryName = countryInfos.get(id).name;
   const html = `
