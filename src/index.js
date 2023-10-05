@@ -599,6 +599,7 @@ function initCanvasMouseEvent(canvas) {
 
 function initCanvasTouchEvent(canvas) {
   let panning = false;
+  let zooming = false;
   let px = 0;
   let py = 0;
   let touchId;
@@ -617,17 +618,26 @@ function initCanvasTouchEvent(canvas) {
         break;
       }
       case 2: {
-        const touches = event.touches;
-        for (let i = 0; i < touches.length; i++) {
-          const touch = touches[i];
-          if (touchId == touch.identifier) {
-            const tx2 = dx2 + (touch.clientX - px) / zoom;
-            const ty2 = dy2 + (touch.clientY - py) / zoom;
-            [dx2, dy2] = calcLimitedPoint(tx2, ty2);
+        zooming = true;
+        if (!touchId) {
+          panning = true;
+          const touch = event.touches[0];
+          px = touch.clientX;
+          py = touch.clientY;
+          touchId = touch.identifier;
+        } else {
+          const touches = event.touches;
+          for (let i = 0; i < touches.length; i++) {
+            const touch = touches[i];
+            if (touchId == touch.identifier) {
+              const tx2 = dx2 + (touch.clientX - px) / zoom;
+              const ty2 = dy2 + (touch.clientY - py) / zoom;
+              [dx2, dy2] = calcLimitedPoint(tx2, ty2);
 
-            dx1 = canvas.viewportTransform[4];
-            dy1 = canvas.viewportTransform[5];
-            break;
+              dx1 = canvas.viewportTransform[4];
+              dy1 = canvas.viewportTransform[5];
+              break;
+            }
           }
         }
         break;
@@ -638,17 +648,19 @@ function initCanvasTouchEvent(canvas) {
     if (!panning) return;
     if (event.touches.length == 0) {
       panning = false;
-      const changedTouches = event.changedTouches;
-      for (let i = 0; i < changedTouches.length; i++) {
-        const changedTouch = changedTouches[i];
-        if (touchId == changedTouch.identifier) {
-          const tx2 = dx2 + (changedTouch.clientX - px) / zoom;
-          const ty2 = dy2 + (changedTouch.clientY - py) / zoom;
-          [dx2, dy2] = calcLimitedPoint(tx2, ty2);
+      if (!zooming) {
+        const changedTouches = event.changedTouches;
+        for (let i = 0; i < changedTouches.length; i++) {
+          const changedTouch = changedTouches[i];
+          if (touchId == changedTouch.identifier) {
+            const tx2 = dx2 + (changedTouch.clientX - px) / zoom;
+            const ty2 = dy2 + (changedTouch.clientY - py) / zoom;
+            [dx2, dy2] = calcLimitedPoint(tx2, ty2);
 
-          dx1 = canvas.viewportTransform[4];
-          dy1 = canvas.viewportTransform[5];
-          break;
+            dx1 = canvas.viewportTransform[4];
+            dy1 = canvas.viewportTransform[5];
+            break;
+          }
         }
       }
       touchId = null;
@@ -670,6 +682,7 @@ function initCanvasTouchEvent(canvas) {
         }
       }
     }
+    zooming = false;
     initialZoom = zoom;
   });
   canvas.wrapperEl.addEventListener("touchmove", (event) => {
@@ -695,15 +708,15 @@ function initCanvasTouchEvent(canvas) {
         zoom = initialZoom * event.scale;
         if (zoom > maxScale) zoom = maxScale;
         if (zoom < minScale) zoom = minScale;
-        if (zoom == 1) {
-          const point = new fabric.Point(0, 0);
-          canvas.absolutePan(point);
-          canvas.setZoom(1);
-          dx2 = dy2 = 0;
-        } else {
+        // if (zoom == 1) {
+        //   const point = new fabric.Point(0, 0);
+        //   canvas.absolutePan(point);
+        //   canvas.setZoom(1);
+        //   dx2 = dy2 = 0;
+        // } else {
           const point = new fabric.Point(canvas.width / 2, canvas.height / 2);
           canvas.zoomToPoint(point, zoom);
-        }
+        // }
         dx1 = canvas.viewportTransform[4];
         dy1 = canvas.viewportTransform[5];
         map.style.transform = `scale(${zoom}) translate(${dx2}px,${dy2}px)`;
