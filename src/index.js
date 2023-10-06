@@ -347,7 +347,7 @@ function addScoreText() {
 }
 
 function setCorrectPiece(island) {
-  island.style.fill = "silver";
+  island.style.fill = "violet";
   correctCount += 1;
   if (correctCount == problemNum) {
     playAudio("correctAll");
@@ -487,7 +487,7 @@ function shuffleSVG() {
     if (course.includes(area)) {
       return true;
     } else {
-      piece.style.fill = "darkgray";
+      piece.style.fill = "#e0e0e0";
     }
   });
   problemNum = pieces.length;
@@ -499,19 +499,19 @@ function shuffleSVG() {
   switch (grade % 3) {
     case 0:
       pieces.forEach((piece) => {
-        piece.style.fill = "#eee";
+        piece.style.fill = "#fefee4";
         piece.style.strokeWidth = 1;
       });
       break;
     case 1:
       pieces.forEach((piece) => {
-        piece.style.fill = "#eee";
+        piece.style.fill = "#fefee4";
         piece.style.strokeWidth = 0;
       });
       break;
     case 2:
       pieces.forEach((piece) => {
-        piece.style.fill = "none";
+        piece.style.fill = "#fefee4";
         piece.style.strokeWidth = 0;
       });
       break;
