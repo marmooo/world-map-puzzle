@@ -478,7 +478,7 @@ function shuffleSVG() {
   const doc = map.contentDocument;
   const scale = getSVGScale(map, doc);
   doc.querySelectorAll(".not-piece").forEach((node) => {
-    node.style.fill = "silver";
+    node.style.fill = "#e0e0e0";
   });
   const pieces = [...doc.querySelectorAll(".piece")].filter((piece) => {
     if (course == "ALL") return true;
