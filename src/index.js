@@ -353,7 +353,7 @@ function setCorrectPiece(island) {
     playAudio("correctAll");
     addScoreText();
   } else {
-    playAudio("correct");
+    playAudio("correct", 0.3);
   }
   const id = getCountryId(island);
   const countryName = countryInfos.get(id).name;
