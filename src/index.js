@@ -228,7 +228,7 @@ function addCountryText(countryName) {
   canvas.remove(countryText);
   const zoom = canvas.getZoom();
   const fontSize = canvas.width / countryTextLength;
-  countryText = new fabric.Text(countryName, {
+  countryText = new Text(countryName, {
     fontSize: fontSize,
     fontFamily: "serif",
     left: (canvas.width / 2 - dx1) / zoom,
