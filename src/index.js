@@ -6,7 +6,7 @@ import {
   Rect,
   Text,
   util,
-} from "https://cdn.jsdelivr.net/npm/fabric@6.7.0/+esm";
+} from "https://cdn.jsdelivr.net/npm/fabric@6.7.1/+esm";
 import svgpath from "https://cdn.jsdelivr.net/npm/svgpath@2.6.0/+esm";
 
 const htmlLang = document.documentElement.lang;
