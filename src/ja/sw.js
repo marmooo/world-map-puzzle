@@ -2,7 +2,7 @@ const cacheName = "2026-07-20 00:00";
 const urlsToCache = [
   "/world-map-puzzle/index.js",
   "/world-map-puzzle/map.svg",
-  "/world-map-puzzle/data/ja.lst",
+  "/world-map-puzzle/data/ja.csv",
   "/world-map-puzzle/mp3/decision50.mp3",
   "/world-map-puzzle/mp3/correct1.mp3",
   "/world-map-puzzle/mp3/correct3.mp3",
